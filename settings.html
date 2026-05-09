@@ -1,0 +1,222 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings — Dyslexia Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            padding: 36px 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 36px;
+            max-width: 560px;
+            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+            margin-bottom: 28px;
+        }
+
+        .setting-group { margin-bottom: 24px; }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        label span { color: #2563eb; font-weight: 700; }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #2563eb;
+            height: 6px;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #e0e7ef;
+            background: white;
+            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            color: #374151;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .preview-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #9ca3af;
+            font-weight: 600;
+            margin-bottom: 8px;
+            margin-top: 28px;
+        }
+
+        .preview {
+            padding: 18px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #e0e7ef;
+            color: #1e293b;
+            transition: all 0.3s;
+            line-height: 1.5;
+        }
+
+        .actions { display: flex; gap: 12px; margin-top: 28px; }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-blue { background: #2563eb; color: white; }
+        .btn-gray { background: #f1f5f9; color: #374151; }
+
+        .msg {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 22px;
+        }
+        .success { color: #22c55e; }
+        .error   { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚙️ Reader Settings</h1>
+
+    <div class="setting-group">
+        <label>Font Size <span id="fsVal">18px</span></label>
+        <input type="range" id="fontSize" min="14" max="30" value="18" oninput="update()">
+    </div>
+
+    <div class="setting-group">
+        <label>Letter Spacing <span id="lsVal">1px</span></label>
+        <input type="range" id="letterSpacing" min="0" max="5" step="0.1" value="1" oninput="update()">
+    </div>
+
+    <div class="setting-group">
+        <label>Line Height <span id="lhVal">1.5</span></label>
+        <input type="range" id="lineHeight" min="1" max="3" step="0.1" value="1.5" oninput="update()">
+    </div>
+
+    <div class="setting-group">
+        <label>Background Color</label>
+        <select id="bgColor" onchange="update()">
+            <option value="#ffffff">White</option>
+            <option value="#fef9c3">Soft Yellow</option>
+            <option value="#e0f2fe">Light Blue</option>
+            <option value="#ede9fe">Lavender</option>
+            <option value="#dcfce7">Soft Green</option>
+        </select>
+    </div>
+
+    <p class="preview-label">Preview</p>
+    <div class="preview" id="previewText">
+        The quick brown fox jumps over the lazy dog. Reading is a wonderful habit to build every day.
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-blue" onclick="saveSettings()">💾 Save Settings</button>
+        <button class="btn btn-gray" onclick="window.location.href='index.html'">← Back</button>
+    </div>
+
+    <p class="msg" id="msg"></p>
+</div>
+
+<script>
+const preview       = document.getElementById('previewText');
+const fontSizeEl    = document.getElementById('fontSize');
+const letterSpacEl  = document.getElementById('letterSpacing');
+const lineHeightEl  = document.getElementById('lineHeight');
+const bgColorEl     = document.getElementById('bgColor');
+
+function update() {
+    preview.style.fontSize      = fontSizeEl.value + 'px';
+    preview.style.letterSpacing = letterSpacEl.value + 'px';
+    preview.style.lineHeight    = lineHeightEl.value;
+    preview.style.backgroundColor = bgColorEl.value;
+
+    document.getElementById('fsVal').innerText = fontSizeEl.value + 'px';
+    document.getElementById('lsVal').innerText = letterSpacEl.value + 'px';
+    document.getElementById('lhVal').innerText = lineHeightEl.value;
+}
+
+async function saveSettings() {
+    const msg  = document.getElementById('msg');
+    msg.className = 'msg';
+    msg.innerText = '';
+
+    const form = new FormData();
+    form.append('action',         'save');
+    form.append('font_size',      fontSizeEl.value);
+    form.append('letter_spacing', letterSpacEl.value);
+    form.append('line_height',    lineHeightEl.value);
+    form.append('bg_color',       bgColorEl.value);
+
+    try {
+        const res  = await fetch('settings.php', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.success) {
+            msg.className = 'msg success';
+            msg.innerText = '✅ ' + data.message;
+        } else {
+            msg.className = 'msg error';
+            msg.innerText = '❌ ' + data.message;
+        }
+    } catch {
+        msg.className = 'msg error';
+        msg.innerText = 'Server error. Make sure XAMPP is running.';
+    }
+}
+
+async function loadSettings() {
+    try {
+        const res  = await fetch('settings.php?action=load');
+        const data = await res.json();
+        if (data.settings) {
+            const s = data.settings;
+            fontSizeEl.value   = s.font_size;
+            letterSpacEl.value = s.letter_spacing;
+            lineHeightEl.value = s.line_height;
+            bgColorEl.value    = s.bg_color;
+            update();
+        }
+    } catch { /* server off */ }
+}
+
+loadSettings();
+</script>
+</body>
+</html>
