@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dyslexia-Friendly Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-width: 780px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .topbar a {
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: white;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            transition: background 0.2s;
+        }
+        .topbar a:hover { background: #eff6ff; }
+        .topbar a.logout { color: #ef4444; border-color: #fecaca; }
+
+        .container {
+            background: white;
+            padding: 36px;
+            max-width: 780px;
+            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            color: #1e3a8a;
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .subtitle { color: #6b7280; margin-bottom: 24px; font-size: 0.95rem; }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1.5px solid #e0e7ef;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: #2563eb; }
+
+        .buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+
+        button {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        button:hover { background: #1d4ed8; transform: translateY(-1px); }
+        button.danger { background: #ef4444; }
+        button.danger:hover { background: #dc2626; }
+        button.secondary { background: #f1f5f9; color: #374151; }
+        button.secondary:hover { background: #e2e8f0; }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 18px;
+            font-size: 0.88rem;
+            color: #6b7280;
+        }
+        .spacing-row input { width: 160px; accent-color: #2563eb; }
+
+        #difficulty {
+            font-weight: 600;
+            margin-top: 14px;
+            font-size: 1rem;
+            min-height: 24px;
+        }
+
+        #output {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 14px;
+            line-height: 2;
+            font-size: 18px;
+            text-align: left;
+            min-height: 20px;
+        }
+
+        .highlight {
+            background: #fef08a;
+            padding: 6px 8px;
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #22c55e;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="history.html">📜 History</a>
+    <a href="settings.html">⚙️ Settings</a>
+    <a href="logout.php" class="logout">Logout</a>
+</div>
+
+<div class="container">
+    <h1>Dyslexia-Friendly Reader</h1>
+    <p class="subtitle">Paste your text below to make it easier to read.</p>
+
+    <textarea id="inputText" placeholder="Paste your text here…"></textarea>
+
+    <div class="buttons">
+        <button onclick="convertText()">✨ Make Easy to Read</button>
+        <button onclick="simplifyText()">🔤 Simplify Words</button>
+        <button onclick="checkDifficulty()">📊 Check Difficulty</button>
+        <button class="secondary" onclick="resetText()">↺ Reset</button>
+    </div>
+
+    <div class="spacing-row">
+        <label>Line Spacing:</label>
+        <input type="range" min="1" max="3" step="0.1" value="2" oninput="changeSpacing(this.value)">
+    </div>
+
+    <p id="difficulty"></p>
+    <div id="output"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg, color = '#22c55e') {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.background = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function saveHistoryToDB(text) {
+    try {
+        const form = new FormData();
+        form.append('action', 'save');
+        form.append('text', text);
+        const res  = await fetch('history.php', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.success) showToast('📖 Saved to history!');
+    } catch {
+        // fallback: session expired or server off
+        showToast('⚠️ Not saved — please log in', '#f59e0b');
+    }
+}
+
+function convertText() {
+    const text = document.getElementById('inputText').value.trim();
+    if (!text) return;
+
+    saveHistoryToDB(text);
+
+    const lines  = text.split('.');
+    let result = '';
+    lines.forEach(line => {
+        if (line.trim()) result += `<p class="highlight">${line.trim()}</p>`;
+    });
+    document.getElementById('output').innerHTML = result;
+}
+
+function changeSpacing(value) {
+    document.getElementById('output').style.lineHeight = value;
+}
+
+function simplifyText() {
+    const text = document.getElementById('inputText').value;
+    const map   = {
+        utilize: 'use', demonstrate: 'show', comprehend: 'understand',
+        individuals: 'people', assistance: 'help', approximately: 'about',
+        purchase: 'buy', subsequently: 'then', commence: 'start',
+        endeavour: 'try', sufficient: 'enough', require: 'need'
+    };
+    const words = text.split(' ').map(w => map[w.toLowerCase()] || w);
+    document.getElementById('output').innerText = words.join(' ');
+}
+
+function checkDifficulty() {
+    const words = document.getElementById('inputText').value.trim().split(/\s+/).length;
+    let result  = '';
+    if (words < 10)      result = '🟢 Easy to read';
+    else if (words < 20) result = '🟡 Medium difficulty';
+    else                 result = '🔴 Hard to read';
+    document.getElementById('difficulty').innerText = result;
+}
+
+function resetText() {
+    document.getElementById('inputText').value      = '';
+    document.getElementById('output').innerHTML     = '';
+    document.getElementById('difficulty').innerText = '';
+}
+
+// Load saved settings
+async function loadSettings() {
+    try {
+        const res  = await fetch('settings.php?action=load');
+        const data = await res.json();
+        if (data.success && data.settings) {
+            const s = data.settings;
+            document.getElementById('output').style.fontSize      = s.font_size + 'px';
+            document.getElementById('output').style.letterSpacing = s.letter_spacing + 'px';
+            document.getElementById('output').style.lineHeight    = s.line_height;
+            document.getElementById('output').style.backgroundColor = s.bg_color;
+        }
+    } catch { /* not logged in or server off */ }
+}
+loadSettings();
+</script>
+</body>
+</html>
