@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reading History — Dyslexia Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 32px;
+            max-width: 760px;
+            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { opacity: 0.8; }
+        .btn-blue  { background: #2563eb; color: white; }
+        .btn-red   { background: #ef4444; color: white; }
+        .btn-gray  { background: #f1f5f9; color: #374151; }
+
+        .item {
+            background: #e0f2fe;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .item-left { flex: 1; }
+        .item-text { font-size: 0.95rem; color: #1e3a8a; margin-bottom: 6px; line-height: 1.5; }
+        .item-meta { font-size: 0.78rem; color: #6b7280; display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .badge-easy   { background: #dcfce7; color: #16a34a; }
+        .badge-medium { background: #fef9c3; color: #ca8a04; }
+        .badge-hard   { background: #fee2e2; color: #dc2626; }
+
+        /* teacher/admin gets a username column */
+        .by-user { font-size: 0.8rem; color: #2563eb; font-weight: 500; }
+
+        #empty {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 0;
+            font-size: 0.95rem;
+        }
+
+        .top-actions { display: flex; gap: 10px; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-row">
+        <h1>📜 Reading History</h1>
+        <div class="top-actions">
+            <button class="btn btn-red"  onclick="clearAll()">Clear All</button>
+            <a class="btn btn-gray" href="index.html">⬅ Back</a>
+        </div>
+    </div>
+
+    <div id="historyList"></div>
+    <p id="empty" style="display:none">No history yet. Go read something! 📖</p>
+</div>
+
+<script>
+async function loadHistory() {
+    try {
+        const res  = await fetch('history.php?action=fetch');
+        const data = await res.json();
+
+        if (!data.success) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const list = data.history;
+        const el   = document.getElementById('historyList');
+        const empty = document.getElementById('empty');
+
+        if (!list || list.length === 0) {
+            empty.style.display = 'block';
+            return;
+        }
+
+        el.innerHTML = list.map(item => `
+            <div class="item" id="item-${item.id}">
+                <div class="item-left">
+                    ${item.username ? `<div class="by-user">👤 ${item.username}</div>` : ''}
+                    <div class="item-text">${escHtml(item.original_text.substring(0, 200))}${item.original_text.length > 200 ? '…' : ''}</div>
+                    <div class="item-meta">
+                        <span class="badge badge-${item.difficulty}">${item.difficulty.toUpperCase()}</span>
+                        <span>📝 ${item.word_count} words</span>
+                        <span>🕒 ${formatDate(item.created_at)}</span>
+                    </div>
+                </div>
+                <button class="btn btn-red" onclick="deleteItem(${item.id})" style="flex-shrink:0">Delete</button>
+            </div>
+        `).join('');
+    } catch {
+        window.location.href = 'login.html';
+    }
+}
+
+async function deleteItem(id) {
+    const form = new FormData();
+    form.append('action', 'delete');
+    form.append('id', id);
+    const res  = await fetch('history.php', { method: 'POST', body: form });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('item-' + id)?.remove();
+        if (!document.querySelector('.item')) {
+            document.getElementById('empty').style.display = 'block';
+        }
+    }
+}
+
+async function clearAll() {
+    if (!confirm('Clear all history?')) return;
+    const form = new FormData();
+    form.append('action', 'clear');
+    const res  = await fetch('history.php', { method: 'POST', body: form });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('historyList').innerHTML = '';
+        document.getElementById('empty').style.display = 'block';
+    }
+}
+
+function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatDate(dt) {
+    const d = new Date(dt);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+loadHistory();
+</script>
+</body>
+</html>
