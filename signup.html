@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up — Dyslexia Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #0f1117 0%, #1a1d27 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: #1a1d27;
+            border: 1px solid #2e3347;
+            border-radius: 20px;
+            padding: 40px 36px;
+            width: 380px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+            animation: fadeUp 0.5s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        h2 { color: #e8eaf0; font-size: 1.6rem; margin-bottom: 6px; }
+        .sub { color: #6b7280; font-size: 0.88rem; margin-bottom: 28px; }
+
+        label { display: block; color: #9ca3af; font-size: 0.8rem; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #2e3347;
+            background: #0f1117;
+            color: #e8eaf0;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 18px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        input:focus, select:focus { border-color: #4f8ef7; }
+        select option { background: #1a1d27; }
+
+        .role-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+        .role-option { display: none; }
+        .role-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 8px;
+            border-radius: 10px;
+            border: 1.5px solid #2e3347;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.82rem;
+            color: #6b7280;
+        }
+        .role-label:hover { border-color: #4f8ef7; color: #e8eaf0; }
+        .role-option:checked + .role-label {
+            border-color: #4f8ef7;
+            background: rgba(79,142,247,0.1);
+            color: #4f8ef7;
+        }
+        .role-icon { font-size: 1.3rem; }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .msg { text-align: center; margin-top: 14px; font-size: 0.9rem; font-weight: 500; min-height: 22px; }
+        .error   { color: #ef4444; }
+        .success { color: #22c55e; }
+
+        .footer-link { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #6b7280; }
+        .footer-link a { color: #4f8ef7; text-decoration: none; font-weight: 500; }
+        .footer-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo">📖 Dyslexia Reader</div>
+    <h2>Create Account</h2>
+    <p class="sub">Join as a student, teacher, or admin</p>
+
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Choose a username" autocomplete="off">
+
+    <label>Email (optional)</label>
+    <input type="email" id="email" placeholder="you@example.com">
+
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Min. 4 characters">
+
+    <label>Role</label>
+    <div class="role-row">
+        <div>
+            <input class="role-option" type="radio" name="role" id="r-student" value="student" checked>
+            <label class="role-label" for="r-student">
+                <span class="role-icon">🎒</span> Student
+            </label>
+        </div>
+        <div>
+            <input class="role-option" type="radio" name="role" id="r-teacher" value="teacher">
+            <label class="role-label" for="r-teacher">
+                <span class="role-icon">🧑‍🏫</span> Teacher
+            </label>
+        </div>
+        <div>
+            <input class="role-option" type="radio" name="role" id="r-admin" value="admin">
+            <label class="role-label" for="r-admin">
+                <span class="role-icon">⚡</span> Admin
+            </label>
+        </div>
+    </div>
+
+    <button id="signupBtn" onclick="signup()">Create Account</button>
+    <p class="msg" id="msg"></p>
+
+    <div class="footer-link">Already have an account? <a href="login.html">Log in</a></div>
+</div>
+
+<script>
+async function signup() {
+    const username = document.getElementById('username').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const role     = document.querySelector('input[name="role"]:checked').value;
+    const msg      = document.getElementById('msg');
+    const btn      = document.getElementById('signupBtn');
+
+    msg.className = '';
+    msg.innerText = '';
+
+    if (!username || !password) {
+        msg.className = 'msg error';
+        msg.innerText = 'Username and password are required.';
+        return;
+    }
+
+    if (password.length < 4) {
+        msg.className = 'msg error';
+        msg.innerText = 'Password must be at least 4 characters.';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'Creating account…';
+
+    const form = new FormData();
+    form.append('username', username);
+    form.append('email', email);
+    form.append('password', password);
+    form.append('role', role);
+
+    try {
+        const res  = await fetch('signup.php', { method: 'POST', body: form });
+        const data = await res.json();
+
+        if (data.success) {
+            msg.className = 'msg success';
+            msg.innerText = data.message;
+            setTimeout(() => window.location.href = 'login.html', 1500);
+        } else {
+            msg.className = 'msg error';
+            msg.innerText = data.message;
+            btn.disabled = false;
+            btn.innerText = 'Create Account';
+        }
+    } catch {
+        msg.className = 'msg error';
+        msg.innerText = 'Server error. Make sure XAMPP is running.';
+        btn.disabled = false;
+        btn.innerText = 'Create Account';
+    }
+}
+</script>
+</body>
+</html>
